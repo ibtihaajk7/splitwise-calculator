@@ -11,7 +11,7 @@ import {
   TextField,
 } from "@mui/material";
 
-const CalculatorTable = ({ rows }) => {
+const CalculatorTable = ({ rows, deliveryCharges }) => {
   const [data, setData] = useState(
     Array.from({ length: rows }, () => ({
       name: "",
@@ -20,6 +20,7 @@ const CalculatorTable = ({ rows }) => {
       total5: 0,
       tax16: 0,
       total16: 0,
+      deliveryShare: 0,
     }))
   );
 
@@ -29,13 +30,14 @@ const CalculatorTable = ({ rows }) => {
         // Add new rows
         return [
           ...prevData,
-          ...Array.from({ length: rows - prevData.length }, (_, index) => ({
+          ...Array.from({ length: rows - prevData.length }, () => ({
             name: "",
             orderValue: 0,
             tax5: 0,
             total5: 0,
             tax16: 0,
             total16: 0,
+            deliveryShare: 0,
           })),
         ];
       }
@@ -44,11 +46,26 @@ const CalculatorTable = ({ rows }) => {
     });
   }, [rows]);
 
-  const { subtotal5, subtotal16 } = React.useMemo(() => {
-    const subtotal5 = data.reduce((sum, row) => sum + parseFloat(row.total5 || 0), 0).toFixed(2);
-    const subtotal16 = data.reduce((sum, row) => sum + parseFloat(row.total16 || 0), 0).toFixed(2);
-    return { subtotal5, subtotal16 };
-  }, [data]);
+  useEffect(() => {
+    const share = deliveryCharges > 0 ? (deliveryCharges / rows).toFixed(2) : 0;
+    setData((prevData) =>
+      prevData.map((row) => ({
+        ...row,
+        deliveryShare: share,
+      }))
+    );
+  }, [deliveryCharges, rows]);
+
+  const { subtotal5, subtotal16, subTotal } = React.useMemo(() => {
+    let subTotal = data.reduce((sum, row) => sum + parseFloat(row.orderValue || 0), 0).toFixed(2);
+    let subtotal5 = data.reduce((sum, row) => sum + parseFloat(row.total5 || 0), 0).toFixed(2);
+    let subtotal16 = data.reduce((sum, row) => sum + parseFloat(row.total16 || 0), 0).toFixed(2);
+    subtotal5 = (parseFloat(subtotal5) + parseFloat(deliveryCharges)).toFixed(2);
+    subtotal16 = (parseFloat(subtotal16) + parseFloat(deliveryCharges)).toFixed(2);
+    subTotal = (parseFloat(subTotal) + parseFloat(deliveryCharges)).toFixed(2);
+   // const deliveryTotal = (rows * parseFloat(data[0]?.deliveryShare || 0)).toFixed(2);
+    return { subtotal5, subtotal16, subTotal };
+  }, [data, deliveryCharges]);
 
   const handleInputChange = (index, field, value) => {
     const updatedData = [...data];
@@ -84,14 +101,18 @@ const CalculatorTable = ({ rows }) => {
                     5% Tax
                 </TableCell>
                 <TableCell sx={{ backgroundColor: "#B6FFBB", color: "black", fontWeight: "bold" }}>
-                    Total with 5%
-                </TableCell>
-                <TableCell sx={{ backgroundColor: "#B6FFBB", color: "black", fontWeight: "bold" }}>
                     16% Tax
                 </TableCell>
                 <TableCell sx={{ backgroundColor: "#B6FFBB", color: "black", fontWeight: "bold" }}>
-                    Total with 16%
+                    Delivery Share
                 </TableCell>
+                <TableCell sx={{ backgroundColor: "#B6FFBB", color: "black", fontWeight: "bold" }}>
+                    Total(5% tax + Delivery)
+                </TableCell>
+                <TableCell sx={{ backgroundColor: "#B6FFBB", color: "black", fontWeight: "bold" }}>
+                Total with 16% + Delivery
+                </TableCell>
+
             </TableRow>
     </TableHead>
         <TableBody>
@@ -102,11 +123,12 @@ const CalculatorTable = ({ rows }) => {
                 backgroundColor: index % 2 === 0 ? "#f5f5f5" : "#ffffff",
               }}
             >
-                <TableCell>{index + 1}</TableCell>
+             <TableCell>{index + 1}</TableCell>
               <TableCell>
                 <TextField
                   variant="outlined"
                   size="small"
+                
                   value={row.name}
                   onChange={(e) =>
                     handleInputChange(index, "name", e.target.value)
@@ -114,33 +136,38 @@ const CalculatorTable = ({ rows }) => {
                 />
               </TableCell>
               <TableCell>
-              <TextField
-  error={isNaN(row.orderValue)}
-  helperText={isNaN(row.orderValue) ? "Invalid number" : ""}
-  variant="outlined"
-  size="small"
-  type="text"
-  value={row.orderValue === 0 ? "" : row.orderValue}
-  onChange={(e) => {
-    const value = e.target.value;
-    if (value === "" || !isNaN(Number(value))) {
-      handleInputChange(index, "orderValue", value);
-    }
-  }}
-  inputProps={{
-    inputMode: "decimal",
-  }}
-/>
-              
+                  <TextField
+                    error={isNaN(row.orderValue)}
+                    helperText={isNaN(row.orderValue) ? "Invalid number" : ""}
+                    variant="outlined"
+                    size="small"
+                    type="text"
+                    value={row.orderValue === 0 ? "" : row.orderValue}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "" || !isNaN(Number(value))) {
+                        handleInputChange(index, "orderValue", value);
+                      }
+                    }}
+                    inputProps={{
+                      inputMode: "decimal",
+                    }}
+                  />   
                 </TableCell>
               <TableCell>{row.tax5}</TableCell>
-              <TableCell style={{ fontWeight: "bold", color: "#4169E1" }}>
-                {row.total5}
-              </TableCell>
               <TableCell>{row.tax16}</TableCell>
+              <TableCell>{row.deliveryShare}</TableCell>
               <TableCell style={{ fontWeight: "bold", color: "#4169E1" }}>
-                {row.total16}
+              {(parseFloat(row.total5) + parseFloat(row.deliveryShare)).toFixed(1)}
               </TableCell>
+              
+              <TableCell style={{ fontWeight: "bold", color: "#4169E1" }}>
+              {(parseFloat(row.total16) + parseFloat(row.deliveryShare)).toFixed(1)}
+
+
+              </TableCell>
+
+              
             </TableRow>
           ))}
         </TableBody>
@@ -148,6 +175,9 @@ const CalculatorTable = ({ rows }) => {
     </TableContainer>
       {/* Subtotal Section */}
     <Box sx={{ mt: 2, textAlign: "left" }}>
+    <Typography variant="h6" sx={{ fontWeight: "bold", color: "#4169E1", mb: 1 }}>
+            Subtotal: {subTotal}
+        </Typography>
         <Typography variant="h6" sx={{ fontWeight: "bold", color: "#4169E1", mb: 1 }}>
             Subtotal with 5%: {subtotal5}
         </Typography>
@@ -156,6 +186,7 @@ const CalculatorTable = ({ rows }) => {
   <Typography variant="h6" sx={{ fontWeight: "bold", color: "#4169E1" }}>
             Subtotal with 16%: {subtotal16}
         </Typography>
+        
     <Typography
       component="a"
       href="https://links.ibtihaaj.com" // Replace with your URL
@@ -170,6 +201,7 @@ const CalculatorTable = ({ rows }) => {
   
        
         </Box>
+       
     </Box>
     </>
   );

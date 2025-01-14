@@ -4,6 +4,7 @@ import CalculatorTable from "./components/CalculatorTable";
 
 function App() {
   const [rows, setRows] = useState(5);
+  const [deliveryCharges, setDeliveryCharges] = useState(0);
   const [error, setError] = useState("");
 
   const handleRowChange = (e) => {
@@ -16,36 +17,67 @@ function App() {
     }
   };
 
+  const handleDeliveryChargesChange = (e) => {
+    const value = parseFloat(e.target.value);
+    if (value < 0) {
+    } else {
+      setDeliveryCharges(value || 0); // Default to 0 if input is empty
+    }
+  };
+
   return (
     <Box sx={{ padding: 4 }}>
-
-  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-  <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-    <a href="https://www.we-over-i.com" target="_blank" rel="noopener noreferrer">
-    <img 
-      src="/logo192.png" // Replace with your logo's URL or path
-      alt="Logo"
-      style={{ width: "auto", height: "50px", }} // Adjust the size as needed
-    />
-  </a>
-  </Box>
-  <Typography variant="h5">{"WE > i: Splitwise Calculator"}</Typography>
-    <Box>
-      <TextField
-        label="Number of Rows"
-        type="number"
-        value={rows}
-        onChange={handleRowChange}
-        error={!!error}
-        helperText={error}
-        variant="outlined"
-        size="small"
-        sx={{ width: 150 }}
-      />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+          <a
+            href="https://www.we-over-i.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="/logo192.png"
+              alt="Logo"
+              style={{ width: "auto", height: "50px" }}
+            />
+          </a>
+        </Box>
+        <Typography variant="h5">{"WE > i: Splitwise Calculator"}</Typography>
+        <Box>
+        <TextField
+            label="Delivery Charges"
+            placeholder="Enter, if any..."
+            type="number"
+            value={deliveryCharges === 0 ? "" : deliveryCharges}
+            onChange={handleDeliveryChargesChange}
+            error={!!error}
+            helperText={error}
+            variant="outlined"
+            size="small"
+            sx={{ width: 160 , mr: 2}}
+          />
+          <TextField
+            label="Number of Rows"
+            type="number"
+            value={rows}
+            onChange={handleRowChange}
+            error={!!error}
+            helperText={error}
+            variant="outlined"
+            size="small"
+            sx={{ width: 160, mb: 2 }}
+          />
+         
+        </Box>
+      </Box>
+      <CalculatorTable rows={rows} deliveryCharges={deliveryCharges} />
     </Box>
-  </Box>
-  <CalculatorTable rows={rows} />
-</Box>
   );
 }
 

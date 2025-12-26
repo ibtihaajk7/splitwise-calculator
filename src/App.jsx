@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { Box, Typography, TextField } from "@mui/material";
 import CalculatorTable from "./components/CalculatorTable";
 
+const LOGO_URL = "/logo192.png";
+const WEBSITE_URL = "https://www.we-over-i.com";
+const MAX_ROWS = 30;
+
 function App() {
   const [rows, setRows] = useState(5);
   const [deliveryCharges, setDeliveryCharges] = useState(0);
@@ -9,19 +13,18 @@ function App() {
 
   const handleRowChange = (e) => {
     const value = parseInt(e.target.value, 10);
-    if (value > 30) {
-      setError("Maximum number of rows allowed is 30.");
+    if (value > MAX_ROWS) {
+      setError(`Maximum number of rows allowed is ${MAX_ROWS}.`);
     } else {
       setError("");
-      setRows(value || 1); // Default to 1 if input is empty
+      setRows(value || 1);
     }
   };
 
   const handleDeliveryChargesChange = (e) => {
     const value = parseFloat(e.target.value);
-    if (value < 0) {
-    } else {
-      setDeliveryCharges(value || 0); // Default to 0 if input is empty
+    if (value >= 0 || isNaN(value)) {
+      setDeliveryCharges(value || 0);
     }
   };
 
@@ -36,13 +39,9 @@ function App() {
         }}
       >
         <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
-          <a
-            href="https://www.we-over-i.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={WEBSITE_URL} target="_blank" rel="noopener noreferrer">
             <img
-              src="/logo192.png"
+              src={LOGO_URL}
               alt="Logo"
               style={{ width: "auto", height: "50px" }}
             />
@@ -50,7 +49,7 @@ function App() {
         </Box>
         <Typography variant="h5">{"WE > i: Splitwise Calculator"}</Typography>
         <Box>
-        <TextField
+          <TextField
             label="Delivery Charges"
             placeholder="Enter, if any..."
             type="number"
@@ -60,7 +59,7 @@ function App() {
             helperText={error}
             variant="outlined"
             size="small"
-            sx={{ width: 160 , mr: 2}}
+            sx={{ width: 160, mr: 2 }}
           />
           <TextField
             label="Number of Rows"
@@ -73,7 +72,6 @@ function App() {
             size="small"
             sx={{ width: 160, mb: 2 }}
           />
-         
         </Box>
       </Box>
       <CalculatorTable rows={rows} deliveryCharges={deliveryCharges} />
